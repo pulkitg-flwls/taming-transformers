@@ -42,18 +42,26 @@ class ImagePaths(Dataset):
     def __len__(self):
         return self._length
 
-    def preprocess_image(self, image_path):
+    # def preprocess_image(self, image_path):
+    #     image = Image.open(image_path)
+    #     if not image.mode == "RGB":
+    #         image = image.convert("RGB")
+    #     image = np.array(image).astype(np.uint8)
+    #     image = self.preprocessor(image=image)["image"]
+    #     image = (image/127.5 - 1.0).astype(np.float32)
+    #     return image
+    def preprocess_image_split(self, image_path):
         image = Image.open(image_path)
         if not image.mode == "RGB":
             image = image.convert("RGB")
-        image = np.array(image).astype(np.uint8)
+        image = np.array(image).astype(np.uint8)[:,:1024,:]
         image = self.preprocessor(image=image)["image"]
         image = (image/127.5 - 1.0).astype(np.float32)
         return image
 
     def __getitem__(self, i):
         example = dict()
-        example["image"] = self.preprocess_image(self.labels["file_path_"][i])
+        example["image"] = self.preprocess_image_split(self.labels["file_path_"][i])
         for k in self.labels:
             example[k] = self.labels[k][i]
         return example
