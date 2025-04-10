@@ -42,26 +42,29 @@ class ImagePaths(Dataset):
     def __len__(self):
         return self._length
 
-    # def preprocess_image(self, image_path):
-    #     image = Image.open(image_path)
-    #     if not image.mode == "RGB":
-    #         image = image.convert("RGB")
-    #     image = np.array(image).astype(np.uint8)
-    #     image = self.preprocessor(image=image)["image"]
-    #     image = (image/127.5 - 1.0).astype(np.float32)
-    #     return image
     def preprocess_image_split(self, image_path):
-        image = Image.open(image_path)
-        if not image.mode == "RGB":
-            image = image.convert("RGB")
-        image = np.array(image).astype(np.uint8)[:,:1024,:]
-        image = self.preprocessor(image=image)["image"]
+        full_image = Image.open(image_path)
+        if not full_image.mode == "RGB":
+            full_image = full_image.convert("RGB")
+        image = np.array(full_image).astype(np.uint8)[:,:1024,:]
+        image = self.preprocessor(image=image)['image']
         image = (image/127.5 - 1.0).astype(np.float32)
-        return image
+
+        fotd = np.array(full_image).astype(np.uint8)[:,1024*1:1024*2,:]
+        fotd = self.preprocessor(image=fotd)['image']
+        fotd = (fotd/127.5 - 1.0).astype(np.float32)
+
+        uv = np.array(full_image).astype(np.uint8)[:,1024*2:1024*3,:]
+        uv = self.preprocessor(image=uv)['image']
+        uv = (uv/127.5 - 1.0).astype(np.float32)
+
+        return image, fotd,uv
 
     def __getitem__(self, i):
         example = dict()
-        example["image"] = self.preprocess_image_split(self.labels["file_path_"][i])
+        # example["image"] = self.preprocess_image_split(self.labels["file_path_"][i])
+        examples = self.preprocess_image_split(self.labels["file_path_"][i])
+        example['image'], example['fotd'], example['uv'] = examples
         for k in self.labels:
             example[k] = self.labels[k][i]
         return example
