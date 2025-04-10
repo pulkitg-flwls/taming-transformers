@@ -247,7 +247,9 @@ class VQModelFotd(pl.LightningModule):
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         # x = self.get_input(batch, self.image_key)
-        x = self.get_input(batch,'fotd')
+        x1 = self.get_input(batch,'fotd')
+        x2 = self.get_input(batch,'uv')
+        x = torch.cat([x1,x2],dim=1)
         x_target = self.get_input(batch,'image')
         xrec, qloss = self(x)
 
@@ -274,7 +276,10 @@ class VQModelFotd(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         # x = self.get_input(batch, self.image_key)
-        x = self.get_input(batch, 'fotd')
+        # x = self.get_input(batch, 'fotd')
+        x1 = self.get_input(batch,'fotd')
+        x2 = self.get_input(batch,'uv')
+        x = torch.cat([x1,x2],dim=1)
         x_target = self.get_input(batch,'image')
         xrec, qloss = self(x)
 
@@ -317,15 +322,18 @@ class VQModelFotd(pl.LightningModule):
         log = dict()
         # x = self.get_input(batch, self.image_key)
         x_target = self.get_input(batch, 'image')
-        x = self.get_input(batch,'fotd')
+        # x = self.get_input(batch,'fotd')
+        x1 = self.get_input(batch,'fotd')
+        x2 = self.get_input(batch,'uv')
+        x = torch.cat([x1,x2],dim=1)
         x = x.to(self.device)
         xrec, _ = self(x)
-        if x.shape[1] > 3:
-            # colorize with random projection
-            assert xrec.shape[1] > 3
-            x = self.to_rgb(x)
-            xrec = self.to_rgb(xrec)
-        log["inputs"] = x
+        # if x.shape[1] > 3:
+        #     # colorize with random projection
+        #     assert xrec.shape[1] > 3
+        #     x = self.to_rgb(x)
+        #     xrec = self.to_rgb(xrec)
+        log["inputs"] = x1
         log["reconstructions"] = xrec
         return log
 
